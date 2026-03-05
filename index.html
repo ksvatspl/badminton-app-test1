@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Badminton Pro SPA</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-green: #39FF14; 
@@ -41,70 +42,74 @@
         }
 
         /* --- Layout --- */
-        .content-section { display: none; width: 100%; max-width: 550px; padding: 1.5rem 1rem; animation: fadeIn 0.4s; }
+        .content-section { display: none; width: 100%; max-width: 500px; padding: 1.5rem 1rem; animation: fadeIn 0.4s; }
         .content-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .container {
-            background-color: var(--card-bg); padding: 1.5rem; border-radius: 20px;
+            background-color: var(--card-bg); padding: 2rem; border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); border: 1px solid rgba(57, 255, 20, 0.2);
+            box-sizing: border-box;
         }
-        h2 { color: var(--primary-green); text-align: center; margin-top: 0; font-size: 1.4rem; }
+        h2 { color: var(--primary-green); text-align: center; margin-top: 0; font-size: 1.4rem; margin-bottom: 1.5rem; }
 
-        /* --- Match Form --- */
-        .match-grid { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 10px; align-items: center; margin-bottom: 1.5rem; }
-        .team-box { display: flex; flex-direction: column; gap: 8px; }
-        .vs-circle { background: var(--vs-color); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; margin: auto; }
-        
-        select {
-            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #333;
-            background: var(--input-bg); color: white; font-family: 'Kanit';
+        /* --- Form Elements --- */
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.5rem; color: var(--primary-green); font-size: 0.9rem; }
+        input, textarea, select {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333;
+            background: var(--input-bg); color: white; box-sizing: border-box; font-family: 'Kanit';
+            font-size: 1rem;
         }
-
-        /* --- Winner Selection --- */
-        .winner-selector { display: flex; gap: 10px; margin-bottom: 1.5rem; }
-        .win-btn {
-            flex: 1; padding: 12px; border: 1px solid #444; background: #222; color: #888;
-            border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.3s; text-align: center;
-        }
-        .win-btn.selected {
-            background: rgba(57, 255, 20, 0.1); border-color: var(--primary-green); color: var(--primary-green);
-            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
-        }
+        input:focus, textarea:focus { border-color: var(--primary-green); outline: none; }
 
         button.main-btn {
             width: 100%; padding: 14px; border: none; border-radius: 10px;
             background: linear-gradient(135deg, var(--primary-green), #2ecc71);
-            color: #000; font-weight: 600; cursor: pointer;
+            color: #000; font-weight: 600; cursor: pointer; transition: 0.2s;
+            font-size: 1rem; margin-top: 0.5rem;
         }
+        button.main-btn:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* --- History List --- */
+        /* --- Match History & Table --- */
         .history-item {
             background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px;
             margin-bottom: 8px; border-left: 4px solid #444; font-size: 0.85rem;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .history-item.winA { border-left-color: var(--primary-green); }
         .history-item.winB { border-left-color: var(--vs-color); }
-        .winner-tag { color: var(--primary-green); font-weight: bold; margin-left: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        #success-msg { display: none; color: var(--primary-green); text-align: center; margin-top: 10px; font-weight: bold; }
+        /* SweetAlert Custom Style */
+        .swal2-popup { background: var(--card-bg) !important; color: white !important; border: 1px solid var(--primary-green); }
+        .swal2-title { color: var(--primary-green) !important; }
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="nav-item active" onclick="switchTab('booking')">ลงชื่อจอง</div>
-        <div class="nav-item" onclick="switchTab('list')">รายชื่อสมาชิก</div>
-        <div class="nav-item" onclick="switchTab('match')">จดผลการแข่ง</div>
+        <div id="nav-booking" class="nav-item active" onclick="switchTab('booking')">ลงชื่อจอง</div>
+        <div id="nav-list" class="nav-item" onclick="switchTab('list')">รายชื่อสมาชิก</div>
+        <div id="nav-match" class="nav-item" onclick="switchTab('match')">จดผลการแข่ง</div>
     </nav>
 
     <section id="booking-section" class="content-section active">
         <div class="container">
             <h2>🏸 ลงชื่อเข้าก๊วน</h2>
             <form id="bookingForm">
-                <input type="text" id="name" placeholder="ชื่อของคุณ" required style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1fr solid #333; background:var(--input-bg); color:white;">
-                <textarea id="note" rows="2" placeholder="หมายเหตุ (ถ้ามี)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1fr solid #333; background:var(--input-bg); color:white;"></textarea>
-                <button type="submit" id="submitBtn" class="main-btn">ยืนยันลงชื่อ</button>
+                <div class="form-group">
+                    <label>ชื่อ-นามสกุล / ชื่อเล่น</label>
+                    <input type="text" id="name" placeholder="ระบุชื่อของคุณ" required>
+                </div>
+                <div class="form-group">
+                    <label>หมายเหตุ</label>
+                    <textarea id="note" rows="2" placeholder="เช่น มาสาย, ฝากจอง 2 ที่"></textarea>
+                </div>
+                <button type="submit" id="submitBtn" class="main-btn">ยืนยันลงชื่อจอง</button>
             </form>
         </div>
     </section>
@@ -112,47 +117,45 @@
     <section id="list-section" class="content-section">
         <div class="container">
             <h2>📋 สมาชิกวันนี้</h2>
-            <div id="tableContent">กำลังโหลด...</div>
+            <div id="tableContent" style="text-align: center; color: #888;">กำลังโหลดรายชื่อ...</div>
         </div>
     </section>
 
     <section id="match-section" class="content-section">
         <div class="container">
             <h2>🏆 บันทึกผลการแข่ง</h2>
-            
-            <div class="match-grid">
-                <div class="team-box">
-                    <select id="p1"><option value="">เลือกผู้เล่น 1</option></select>
-                    <select id="p2"><option value="">เลือกผู้เล่น 2</option></select>
+            <div style="display: grid; grid-template-columns: 1fr 40px 1fr; gap: 10px; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <select id="p1"><option value="">ผู้เล่น 1</option></select>
+                    <select id="p2"><option value="">ผู้เล่น 2</option></select>
                 </div>
-                <div class="vs-circle">VS</div>
-                <div class="team-box">
-                    <select id="p3"><option value="">เลือกผู้เล่น 3</option></select>
-                    <select id="p4"><option value="">เลือกผู้เล่น 4</option></select>
+                <div style="text-align: center; font-weight: bold; color: var(--vs-color);">VS</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <select id="p3"><option value="">ผู้เล่น 3</option></select>
+                    <select id="p4"><option value="">ผู้เล่น 4</option></select>
                 </div>
             </div>
 
-            <div class="winner-selector">
-                <div id="btnWinA" class="win-btn" onclick="selectWinner('Team A')">ทีม A ชนะ</div>
-                <div id="btnWinB" class="win-btn" onclick="selectWinner('Team B')">ทีม B ชนะ</div>
+            <div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+                <button id="btnWinA" class="main-btn" style="background: #222; color: #888; border: 1px solid #444;" onclick="setWinner('Team A')">ทีม A ชนะ</button>
+                <button id="btnWinB" class="main-btn" style="background: #222; color: #888; border: 1px solid #444;" onclick="setWinner('Team B')">ทีม B ชนะ</button>
             </div>
 
             <button onclick="saveMatch()" id="saveMatchBtn" class="main-btn">บันทึกผลการแข่งขัน</button>
-            <div id="success-msg">✅ บันทึกเรียบร้อย!</div>
-
-            <h3 style="margin-top:2rem; font-size:1rem; color:var(--primary-green);">🕒 5 นัดล่าสุด</h3>
+            
+            <h3 style="margin-top:2rem; font-size:1rem; color:var(--primary-green); border-bottom: 1px solid #333; padding-bottom: 5px;">🕒 5 นัดล่าสุด</h3>
             <div id="matchHistory"></div>
         </div>
     </section>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzBkMOGMOEIGEDPCk5RfKpuhFHxNR8EChP9-Ppaj3s59ZCZdgSLgvL5Jz49UWRIKnUw/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw6pgpanHwtbfnzWPsFocrCSaGTi_vm5FvlN79zPNNJ1eLiOK2Z8ICbYRay8o-chFuj/exec';
         let memberList = [];
-        let selectedWinner = '';
+        let winner = '';
 
         function switchTab(tabName) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            event.target.classList.add('active');
+            document.getElementById('nav-' + tabName).classList.add('active');
             
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(tabName + '-section').classList.add('active');
@@ -160,96 +163,99 @@
             if(tabName === 'list' || tabName === 'match') fetchData();
         }
 
-        // ดึงข้อมูลสมาชิกและประวัติการแข่ง
         async function fetchData() {
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                
-                // เก็บรายชื่อไว้ทำ Dropdown
-                memberList = data.members || data; // ปรับตามโครงสร้าง JSON ของคุณ
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                memberList = data.members || data;
+                renderMembers();
                 updateDropdowns();
-                renderMemberList(memberList);
-                
                 if(data.matches) renderHistory(data.matches);
-            } catch (e) { console.error("Load error", e); }
+            } catch (e) { console.error(e); }
         }
 
-        function updateDropdowns() {
-            const selects = ['p1', 'p2', 'p3', 'p4'];
-            selects.forEach(id => {
-                const el = document.getElementById(id);
-                const currentVal = el.value;
-                el.innerHTML = `<option value="">เลือกผู้เล่น</option>`;
-                memberList.forEach(m => {
-                    el.innerHTML += `<option value="${m.name}">${m.name}</option>`;
-                });
-                el.value = currentVal;
-            });
-        }
-
-        function renderMemberList(list) {
-            let html = '<table style="width:100%">';
-            list.forEach((m, i) => {
-                html += `<tr style="border-bottom:1px solid #333"><td style="padding:10px">${i+1}. ${m.name}</td><td style="color:#888; font-size:0.8rem">${m.note||''}</td></tr>`;
+        function renderMembers() {
+            let html = '<table>';
+            memberList.forEach((m, i) => {
+                html += `<tr><td>${i+1}. <b>${m.name}</b></td><td style="color:#888; font-size:0.8rem; text-align:right;">${m.note||''}</td></tr>`;
             });
             document.getElementById('tableContent').innerHTML = html + '</table>';
         }
 
-        function selectWinner(team) {
-            selectedWinner = team;
-            document.getElementById('btnWinA').classList.toggle('selected', team === 'Team A');
-            document.getElementById('btnWinB').classList.toggle('selected', team === 'Team B');
+        function updateDropdowns() {
+            ['p1', 'p2', 'p3', 'p4'].forEach(id => {
+                const el = document.getElementById(id);
+                const val = el.value;
+                el.innerHTML = '<option value="">เลือกผู้เล่น</option>' + 
+                    memberList.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+                el.value = val;
+            });
         }
 
-        async function saveMatch() {
-            const p1 = document.getElementById('p1').value;
-            const p2 = document.getElementById('p2').value;
-            const p3 = document.getElementById('p3').value;
-            const p4 = document.getElementById('p4').value;
+        function setWinner(team) {
+            winner = team;
+            document.getElementById('btnWinA').style.borderColor = team === 'Team A' ? 'var(--primary-green)' : '#444';
+            document.getElementById('btnWinA').style.color = team === 'Team A' ? 'var(--primary-green)' : '#888';
+            document.getElementById('btnWinB').style.borderColor = team === 'Team B' ? 'var(--primary-green)' : '#444';
+            document.getElementById('btnWinB').style.color = team === 'Team B' ? 'var(--primary-green)' : '#888';
+        }
 
-            if(!p1 || !p3 || !selectedWinner) return alert("กรุณาเลือกผู้เล่นและทีมชนะ");
+        // ส่งข้อมูลหน้าลงชื่อ
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = 'กำลังบันทึก...';
 
-            const btn = document.getElementById('saveMatchBtn');
-            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+            const name = document.getElementById('name').value;
+            const note = document.getElementById('note').value;
+            const url = `${API_URL}?name=${encodeURIComponent(name)}&note=${encodeURIComponent(note)}`;
 
-            const params = `?action=addMatch&p1=${encodeURIComponent(p1)}&p2=${encodeURIComponent(p2)}&p3=${encodeURIComponent(p3)}&p4=${encodeURIComponent(p4)}&winner=${selectedWinner}`;
-            
             try {
-                await fetch(API_URL + params, { method: 'POST', mode: 'no-cors' });
-                document.getElementById('success-msg').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('success-msg').style.display = 'none';
-                    btn.disabled = false; btn.innerText = "บันทึกผลการแข่งขัน";
-                    fetchData(); // รีเฟรชประวัติ
-                }, 2000);
-            } catch (e) { alert("เกิดข้อผิดพลาด"); btn.disabled = false; }
+                await fetch(url, { method: 'POST', mode: 'no-cors' });
+                // แสดง Msgbox
+                Swal.fire({
+                    title: 'ลงชื่อสำเร็จ!',
+                    text: 'เตรียมไม้ให้พร้อม แล้วเจอกันที่คอร์ท',
+                    icon: 'success',
+                    confirmButtonColor: '#39FF14',
+                    confirmButtonText: 'ตกลง'
+                }).then(() => {
+                    document.getElementById('bookingForm').reset();
+                    btn.disabled = false;
+                    btn.innerText = 'ยืนยันลงชื่อจอง';
+                    switchTab('list');
+                });
+            } catch (err) {
+                alert('มีบางอย่างผิดพลาด');
+                btn.disabled = false;
+            }
+        });
+
+        async function saveMatch() {
+            if(!winner || !document.getElementById('p1').value) {
+                return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกผู้เล่นและทีมที่ชนะ', 'warning');
+            }
+            const btn = document.getElementById('saveMatchBtn');
+            btn.disabled = true;
+            
+            const params = `?action=addMatch&p1=${document.getElementById('p1').value}&p2=${document.getElementById('p2').value}&p3=${document.getElementById('p3').value}&p4=${document.getElementById('p4').value}&winner=${winner}`;
+            
+            await fetch(API_URL + params, { method: 'POST', mode: 'no-cors' });
+            Swal.fire('บันทึกผลแล้ว!', '', 'success');
+            btn.disabled = false;
+            fetchData();
         }
 
         function renderHistory(matches) {
             const container = document.getElementById('matchHistory');
-            container.innerHTML = '';
-            matches.slice(-5).reverse().forEach(m => {
-                const isA = m.winner === 'Team A';
-                container.innerHTML += `
-                    <div class="history-item ${isA ? 'winA' : 'winB'}">
-                        <span style="${isA?'color:var(--primary-green)':''}">${m.p1}, ${m.p2}</span> 
-                        <span style="color:var(--vs-color)"> VS </span> 
-                        <span style="${!isA?'color:var(--primary-green)':''}">${m.p3}, ${m.p4}</span>
-                        <span class="winner-tag">${isA ? '← ทีม A ชนะ' : 'ทีม B ชนะ →'}</span>
-                    </div>
-                `;
-            });
+            container.innerHTML = matches.slice(-5).reverse().map(m => `
+                <div class="history-item ${m.winner === 'Team A' ? 'winA' : 'winB'}">
+                    <span>${m.p1}+${m.p2} vs ${m.p3}+${m.p4}</span>
+                    <span style="color:var(--primary-green)">${m.winner === 'Team A' ? 'A Win' : 'B Win'}</span>
+                </div>
+            `).join('');
         }
-
-        // ส่งข้อมูลหน้าแรก
-        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const note = document.getElementById('note').value;
-            await fetch(`${API_URL}?name=${encodeURIComponent(name)}&note=${encodeURIComponent(note)}`, {method:'POST', mode:'no-cors'});
-            switchTab('list');
-        });
     </script>
 </body>
 </html>
