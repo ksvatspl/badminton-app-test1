@@ -117,12 +117,13 @@
 </div>
 
 <script>
+    <script>
     const form = document.getElementById('bookingForm');
     const successBox = document.getElementById('success-box');
     const submitBtn = document.getElementById('submitBtn');
 
-    // ตรวจสอบให้แน่ใจว่า URL นี้ถูกต้อง
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw-mBD0EZRgP2RtfHiSdhKi-JfLeHXjsqWD8EJGw6Y9oYkB7hg3qXTUozS_9Xb-H4vp/exec';
+    // *** วาง URL ล่าสุดที่คุณเพิ่ง Deploy เมื่อกี้ตรงนี้ ***
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzVo-HhVyvnvKccy8opUVgQ3jsaK8oVRA0AVJZ-rStl-SJEFamI34b5pfl5La16-86j/exec'; 
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -132,28 +133,25 @@
 
         const nameValue = document.getElementById('name').value;
         const noteValue = document.getElementById('note').value;
+        const dateValue = new Date().toLocaleString('th-TH');
 
-        const formData = new URLSearchParams();
-        formData.append('name', nameValue);
-        formData.append('note', noteValue);
-        formData.append('date', new Date().toLocaleString('th-TH'));
+        // ส่งข้อมูลแบบดั้งเดิม (Query String) เพื่อให้ GAS รับผ่าน e.parameter ได้ 100%
+        const finalUrl = API_URL + 
+                         "?name=" + encodeURIComponent(nameValue) + 
+                         "&note=" + encodeURIComponent(noteValue) + 
+                         "&date=" + encodeURIComponent(dateValue);
 
-        fetch(API_URL, {
+        fetch(finalUrl, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: formData.toString()
+            mode: 'no-cors'
         })
         .then(() => {
             showSuccess();
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            alert('เกิดข้อผิดพลาด');
             submitBtn.disabled = false;
-            submitBtn.innerText = 'ลงชื่อจองก๊วน';
         });
     });
 
