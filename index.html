@@ -219,27 +219,6 @@
         // หากฝั่ง Script ไม่ได้ตั้งค่าไว้อย่างสมบูรณ์ แนะนำให้ใช้ส่งแบบ Form Data 
         // หรือถ้าส่งเป็น JSON ให้จัดการดังนี้:
 
-        fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors', // สำคัญมากสำหรับ Google Apps Script หากไม่ได้ทำ Web App แบบจัดการ CORS
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(response => {
-            // เนื่องจากใช้ no-cors เราจะไม่เห็น response body 
-            // แต่ถ้าส่งผ่าน ข้อมูลจะไปปรากฏใน Google Sheets ของคุณ
-            showSuccess();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'ลงชื่อจองก๊วน';
-        });
-    });
-
     function showSuccess() {
         form.style.display = 'none';
         successBox.style.display = 'block';
