@@ -182,7 +182,7 @@
     const submitBtn = document.getElementById('submitBtn');
 
     // URL ของ Google Apps Script ที่คุณให้มา
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyPqHyPnAUSkt3ChUG_NmEXeiWLWq2lX1w0uMwdavApOsO4oZ8FkPVpmV1tINOWtZAL/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw-mBD0EZRgP2RtfHiSdhKi-JfLeHXjsqWD8EJGw6Y9oYkB7hg3qXTUozS_9Xb-H4vp/exec';
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -191,12 +191,30 @@
         submitBtn.disabled = true;
         submitBtn.innerText = 'กำลังบันทึกข้อมูล...';
 
-        const formData = {
-            name: document.getElementById('name').value,
-            note: document.getElementById('note').value,
-            date: new Date().toLocaleString('th-TH')
-        };
+// สร้างก้อนข้อมูลแบบ FormData (เพื่อให้ Google Script อ่านง่ายขึ้น)
+        const formData = new URLSearchParams();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('note', document.getElementById('note').value);
+        formData.append('date', new Date().toLocaleString('th-TH'));
 
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors', // เลี่ยงปัญหาเรื่องความปลอดภัย Browser
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        })
+        .then(response => {
+            // เมื่อใช้ no-cors ระบบจะถือว่าสำเร็จเสมอ (ถ้าไม่มี Error Network)
+            showSuccess();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'ลงชื่อจองก๊วน';
+        });
         // สำหรับ Google Apps Script การใช้ fetch แบบปกติอาจติด CORS 
         // หากฝั่ง Script ไม่ได้ตั้งค่าไว้อย่างสมบูรณ์ แนะนำให้ใช้ส่งแบบ Form Data 
         // หรือถ้าส่งเป็น JSON ให้จัดการดังนี้:
